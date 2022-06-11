@@ -7,13 +7,23 @@ import (
 	"time"
 )
 
+// GenericService example service that inherits the base version
+type GenericService struct {
+	service.BaseService
+}
+
+func NewGenericService() *GenericService {
+	return &GenericService{}
+}
+
+// Config an example configuration struct
 type Config struct {
 	Example string `default:"example" env:"EXAMPLE"`
 }
 
 func main() {
 	// Build a GenericService or create your own custom service for more advanced use cases
-	app := service.NewGenericService()
+	app := NewGenericService()
 	err := app.Configure(&Config{})
 	if err != nil {
 		// Handle errors here, for example with logging
