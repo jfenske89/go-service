@@ -1,4 +1,4 @@
-package service
+package goservice
 
 import (
 	"context"
@@ -13,10 +13,10 @@ type BaseService struct {
 	IService
 	Configor         *configor.Configor
 	Config           interface{}
-	ShutdownHandlers []func(config interface{}, ctx context.Context) error
+	ShutdownHandlers []func(ctx context.Context) error
 }
 
-// Configure used to load or re-load configuration
+// Configure used to load or re-load configuration using Configor
 func (s *BaseService) Configure(config interface{}, files ...string) error {
 	environment := os.Getenv("ENVIRONMENT")
 	configorConfig := &configor.Config{}
@@ -25,17 +25,18 @@ func (s *BaseService) Configure(config interface{}, files ...string) error {
 	}
 
 	configuration := configor.New(configorConfig)
-	return s.ConfigureAdvanced(config, configuration, files...)
-}
-
-// ConfigureAdvanced used to load or re-load configuration with specified Configor
-func (s *BaseService) ConfigureAdvanced(config interface{}, configuration *configor.Configor, files ...string) error {
 	s.Configor = configuration
 	s.Config = config
+
 	return s.Configor.Load(s.Config, files...)
 }
 
-// GetConfig return the current Configor
+// SetConfig set the configuration (if you don't want to use Configor)
+func (s *BaseService) SetConfig(config interface{}) {
+	s.Config = config
+}
+
+// GetConfig return the current configuration
 func (s *BaseService) GetConfig() interface{} {
 	return s.Config
 }
@@ -73,7 +74,7 @@ func (s *BaseService) Run(logic func(config interface{}) error) error {
 // Shutdown attempt to run registered shutdown handlers
 func (s *BaseService) Shutdown(ctx context.Context) error {
 	for i := 0; i < len(s.ShutdownHandlers); i++ {
-		err := s.ShutdownHandlers[i](s.GetConfig(), ctx)
+		err := s.ShutdownHandlers[i](ctx)
 		if err != nil {
 			return nil
 		}
@@ -82,6 +83,6 @@ func (s *BaseService) Shutdown(ctx context.Context) error {
 }
 
 // RegisterShutdownHandler register a shutdown handler which attempts to run before shutdown
-func (s *BaseService) RegisterShutdownHandler(logic func(config interface{}, ctx context.Context) error) {
+func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }

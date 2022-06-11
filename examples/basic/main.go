@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jfenske89/go-service/service"
+	"github.com/jfenske89/go-service/goservice"
 	"time"
 )
 
 // GenericService example service that inherits the base version
 type GenericService struct {
-	service.BaseService
+	goservice.BaseService
 }
 
 func NewGenericService() *GenericService {
@@ -32,7 +32,7 @@ func main() {
 
 	//
 	// Register shutdown handlers
-	app.RegisterShutdownHandler(func(config interface{}, ctx context.Context) error {
+	app.RegisterShutdownHandler(func(ctx context.Context) error {
 		// Write your own graceful shutdown logic in here
 		fmt.Println("Shutting down...")
 		time.Sleep(2 * time.Second)
