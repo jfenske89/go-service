@@ -11,9 +11,19 @@ import (
 
 type BaseService struct {
 	IService
-	Configor         *configor.Configor
-	Config           interface{}
+
+	// Configor An optional instance of Configor for handling configuration loading
+	Configor *configor.Configor
+
+	// A generic configuration object
+	Config interface{}
+
+	// ShutdownHandlers these run in descending order before shutdown
 	ShutdownHandlers []func(ctx context.Context) error
+}
+
+func NewBaseService() *BaseService {
+	return &BaseService{}
 }
 
 // Configure used to load or re-load configuration using Configor
@@ -73,7 +83,7 @@ func (s *BaseService) Run(logic func(config interface{}) error) error {
 
 // Shutdown attempt to run registered shutdown handlers
 func (s *BaseService) Shutdown(ctx context.Context) error {
-	for i := 0; i < len(s.ShutdownHandlers); i++ {
+	for i := len(s.ShutdownHandlers) - 1; i >= 0; i-- {
 		err := s.ShutdownHandlers[i](ctx)
 		if err != nil {
 			return nil
@@ -82,7 +92,7 @@ func (s *BaseService) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// RegisterShutdownHandler register a shutdown handler which attempts to run before shutdown
+// RegisterShutdownHandler register a shutdown handler which will all run before shutdown, in descending order
 func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }
