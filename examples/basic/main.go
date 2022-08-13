@@ -25,11 +25,7 @@ type Config struct {
 func main() {
 	// Build a GenericService or create your own custom service for more advanced use cases
 	app := NewGenericService()
-	err := app.SetConfig(Config{})
-	if err != nil {
-		// Handle errors here, for example with logging
-		panic("configuration error: " + err.Error())
-	}
+	app.SetConfig(Config{})
 
 	//
 	// Register shutdown handlers
@@ -42,7 +38,7 @@ func main() {
 
 	//
 	// Run main service logic
-	err = app.Run(func(configIface interface{}) error {
+	err := app.Run(func(configIface interface{}) error {
 		// Convert your custom configuration object back into the struct to use more easily
 		config := *configIface.(*Config)
 
