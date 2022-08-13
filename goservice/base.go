@@ -2,7 +2,6 @@ package goservice
 
 import (
 	"context"
-	"github.com/jinzhu/configor"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,9 +10,6 @@ import (
 
 type BaseService struct {
 	IService
-
-	// Configor An optional instance of Configor for handling configuration loading
-	Configor *configor.Configor
 
 	// A generic configuration object
 	Config interface{}
@@ -26,32 +22,17 @@ func NewBaseService() *BaseService {
 	return &BaseService{}
 }
 
-// Configure used to load or re-load configuration using Configor
-func (s *BaseService) Configure(config interface{}, files ...string) error {
-	environment := os.Getenv("ENVIRONMENT")
-	configorConfig := &configor.Config{}
-	if environment != "" {
-		configorConfig.Environment = environment
-	}
-
-	configuration := configor.New(configorConfig)
-	s.Configor = configuration
-	s.Config = config
-
-	return s.Configor.Load(s.Config, files...)
-}
-
-// SetConfig set the configuration (if you don't want to use Configor)
+// SetConfig will store service configuration
 func (s *BaseService) SetConfig(config interface{}) {
 	s.Config = config
 }
 
-// GetConfig return the current configuration
+// GetConfig will return service configuration
 func (s *BaseService) GetConfig() interface{} {
 	return s.Config
 }
 
-// Run main business logic with graceful shutdown handling
+// Run is the main business logic with graceful shutdown handling
 func (s *BaseService) Run(logic func(config interface{}) error) error {
 	c := make(chan os.Signal, syscall.SIGTERM)
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
@@ -81,7 +62,7 @@ func (s *BaseService) Run(logic func(config interface{}) error) error {
 	return err
 }
 
-// Shutdown attempt to run registered shutdown handlers
+// Shutdown will attempt to run registered shutdown handlers
 func (s *BaseService) Shutdown(ctx context.Context) error {
 	for i := len(s.ShutdownHandlers) - 1; i >= 0; i-- {
 		err := s.ShutdownHandlers[i](ctx)
@@ -92,7 +73,7 @@ func (s *BaseService) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// RegisterShutdownHandler register a shutdown handler which will all run before shutdown, in descending order
+// RegisterShutdownHandler will register a shutdown handler which will all run before shutdown, in descending order
 func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }

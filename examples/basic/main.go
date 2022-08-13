@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jfenske89/go-service/goservice"
 	"time"
+
+	"github.com/jfenske89/go-service/goservice"
 )
 
 // GenericService example service that inherits the base version
@@ -24,7 +25,7 @@ type Config struct {
 func main() {
 	// Build a GenericService or create your own custom service for more advanced use cases
 	app := NewGenericService()
-	err := app.Configure(&Config{})
+	err := app.SetConfig(Config{})
 	if err != nil {
 		// Handle errors here, for example with logging
 		panic("configuration error: " + err.Error())
