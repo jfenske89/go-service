@@ -8,7 +8,7 @@ import (
 	"github.com/jfenske89/go-service/goservice"
 )
 
-// GenericService example service that inherits the base version
+// GenericService example service that inherits the base version (handle configs, etc...)
 type GenericService struct {
 	goservice.BaseService
 }
@@ -23,9 +23,11 @@ type Config struct {
 }
 
 func main() {
+	// You can handle your own configration object and parsing as needed
+	config := Config{Example: "example"}
+
 	// Build a GenericService or create your own custom service for more advanced use cases
 	app := NewGenericService()
-	app.SetConfig(Config{})
 
 	//
 	// Register shutdown handlers
@@ -38,10 +40,7 @@ func main() {
 
 	//
 	// Run main service logic
-	err := app.Run(func(configIface interface{}) error {
-		// Convert your custom configuration object back into the struct to use more easily
-		config := *configIface.(*Config)
-
+	err := app.Run(func(ctx context.Context) error {
 		// Write your logic here, for example some kind of server
 		fmt.Printf("%s service...\n", config.Example)
 		time.Sleep(3 * time.Second)
