@@ -8,7 +8,7 @@ import (
 	"github.com/jfenske89/go-service/goservice"
 )
 
-// GenericService example service that inherits the base version (handle configs, etc...)
+// GenericService example service that inherits the base version (handle your configs, etc...)
 type GenericService struct {
 	goservice.BaseService
 }
@@ -17,15 +17,8 @@ func NewGenericService() *GenericService {
 	return &GenericService{}
 }
 
-// Config an example configuration struct
-type Config struct {
-	Example string `default:"example" env:"EXAMPLE"`
-}
-
 func main() {
-	// You can handle your own configration object and parsing as needed
-	config := Config{Example: "example"}
-
+	//
 	// Build a GenericService or create your own custom service for more advanced use cases
 	app := NewGenericService()
 
@@ -35,19 +28,23 @@ func main() {
 		// Write your own graceful shutdown logic in here
 		fmt.Println("Shutting down...")
 		time.Sleep(2 * time.Second)
+		fmt.Println("OK")
 		return nil
 	})
 
 	//
 	// Run main service logic
-	err := app.Run(func(ctx context.Context) error {
+	if err := app.Run(func(ctx context.Context) error {
+		//
 		// Write your logic here, for example some kind of server
-		fmt.Printf("%s service...\n", config.Example)
+		fmt.Println("service logic...")
 		time.Sleep(3 * time.Second)
-		return nil
-	})
 
-	if err != nil {
+		//
+		// Return at any time to initiate shutdown logic, any error will be returned by the Run func
+		return nil
+	}); err != nil {
+		//
 		// Handle errors here, for example with logging
 		panic("error running service: " + err.Error())
 	}

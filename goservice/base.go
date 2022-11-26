@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type BaseService struct {
@@ -42,25 +44,42 @@ func (s *BaseService) Run(logic func(ctx context.Context) error) error {
 		ctxShutdownCancel()
 	}()
 
-	err := s.Shutdown(ctxShutdown)
-	if logicError != nil {
-		return logicError
+	var err error
+	go func() {
+		err = s.Shutdown(ctxShutdown)
+		ctxShutdownCancel()
+	}()
+
+	for {
+		select {
+		case <-ctxShutdown.Done():
+			if logicError != nil {
+				return logicError
+			} else if err != nil {
+				return err
+			}
+
+			if ctxErr := ctxShutdown.Err(); ctxErr != nil && ctxErr != context.Canceled {
+				return ctxErr
+			}
+			return nil
+		}
 	}
-	return err
 }
 
 // Shutdown will attempt to run registered shutdown handlers
 func (s *BaseService) Shutdown(ctx context.Context) error {
+	g, gctx := errgroup.WithContext(ctx)
 	for i := len(s.ShutdownHandlers) - 1; i >= 0; i-- {
-		err := s.ShutdownHandlers[i](ctx)
-		if err != nil {
-			return nil
-		}
+		handler := s.ShutdownHandlers[i]
+		g.Go(func() error {
+			return handler(gctx)
+		})
 	}
-	return nil
+	return g.Wait()
 }
 
-// RegisterShutdownHandler will register a shutdown handler which will all run before shutdown, in descending order
+// RegisterShutdownHandler registers shutdown logic that will be invoked asynchronously during shutdown
 func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }
