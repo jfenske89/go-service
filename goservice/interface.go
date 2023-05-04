@@ -9,7 +9,7 @@ type BaseService interface {
 	Run(logic func(ctx context.Context) error) error
 
 	// RunWithContext executes the main service logic with a parent context
-	RunWithContext(ctx context.Context, logic func(parentContext context.Context) error) error
+	RunWithContext(parentContext context.Context, logic func(ctx context.Context) error) error
 
 	// Shutdown executes shutdown functions and exits
 	Shutdown(ctx context.Context) error
