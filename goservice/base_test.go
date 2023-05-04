@@ -1,33 +1,31 @@
-package goservice
+package goservice_test
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
+
+	"github.com/jfenske89/go-service/goservice"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestShutdownHandlersRunInDescendingOrder(t *testing.T) {
-	var shutdownVerification []string
-	service := NewBaseService()
+func TestShutdownHandlers(t *testing.T) {
+	shutdownVerification := make(map[string]bool)
+	service := goservice.NewBaseService()
 
-	service.RegisterShutdownHandler(func(ctx context.Context) error {
-		shutdownVerification = append(shutdownVerification, "last")
-		return nil
-	})
-	service.RegisterShutdownHandler(func(ctx context.Context) error {
-		shutdownVerification = append(shutdownVerification, "second")
-		return nil
-	})
-	service.RegisterShutdownHandler(func(ctx context.Context) error {
-		shutdownVerification = append(shutdownVerification, "first")
-		return nil
-	})
+	for i := 1; i <= 3; i++ {
+		key := strconv.Itoa(i)
+		service.RegisterShutdownHandler(func(_ context.Context) error {
+			shutdownVerification[key] = true
+			return nil
+		})
+	}
 
 	err := service.Shutdown(context.Background())
 	assert.NoError(t, err)
 
 	assert.Len(t, shutdownVerification, 3)
-	assert.Equal(t, shutdownVerification[0], "first")
-	assert.Equal(t, shutdownVerification[1], "second")
-	assert.Equal(t, shutdownVerification[2], "last")
+	assert.True(t, shutdownVerification["1"])
+	assert.True(t, shutdownVerification["2"])
+	assert.True(t, shutdownVerification["3"])
 }

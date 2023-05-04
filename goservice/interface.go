@@ -4,8 +4,16 @@ import (
 	"context"
 )
 
-type IService interface {
+type BaseService interface {
+	// Run executes the main service logic
 	Run(logic func(ctx context.Context) error) error
+
+	// RunWithContext executes the main service logic with a parent context
+	RunWithContext(ctx context.Context, logic func(parentContext context.Context) error) error
+
+	// Shutdown executes shutdown functions and exits
 	Shutdown(ctx context.Context) error
+
+	// RegisterShutdownHandler adds a function to run during graceful shutdown
 	RegisterShutdownHandler(logic func(ctx context.Context) error)
 }
