@@ -11,7 +11,7 @@ import (
 
 func TestShutdownHandlers(t *testing.T) {
 	shutdownVerification := make(map[string]bool)
-	service := goservice.NewBaseService()
+	service := goservice.BaseService{}
 
 	for i := 1; i <= 3; i++ {
 		key := strconv.Itoa(i)

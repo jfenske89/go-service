@@ -10,21 +10,17 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type baseServiceImpl struct {
+type BaseService struct {
 	ShutdownHandlers []func(ctx context.Context) error
 }
 
-func NewBaseService() BaseService {
-	return &baseServiceImpl{}
-}
-
 // Run executes the main service logic
-func (s *baseServiceImpl) Run(logic func(ctx context.Context) error) error {
+func (s *BaseService) Run(logic func(ctx context.Context) error) error {
 	return s.RunWithContext(context.Background(), logic)
 }
 
 // RunWithContext executes the main service logic with a parent context
-func (s *baseServiceImpl) RunWithContext(parentContext context.Context, logic func(ctx context.Context) error) error {
+func (s *BaseService) RunWithContext(parentContext context.Context, logic func(ctx context.Context) error) error {
 	c := make(chan os.Signal, syscall.SIGTERM)
 	ctx, cancel := signal.NotifyContext(parentContext, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -70,7 +66,7 @@ func (s *baseServiceImpl) RunWithContext(parentContext context.Context, logic fu
 }
 
 // Shutdown executes shutdown functions and exits
-func (s *baseServiceImpl) Shutdown(ctx context.Context) error {
+func (s *BaseService) Shutdown(ctx context.Context) error {
 	g, gctx := errgroup.WithContext(ctx)
 	for i := len(s.ShutdownHandlers) - 1; i >= 0; i-- {
 		handler := s.ShutdownHandlers[i]
@@ -82,6 +78,6 @@ func (s *baseServiceImpl) Shutdown(ctx context.Context) error {
 }
 
 // RegisterShutdownHandler adds a function to run during graceful shutdown
-func (s *baseServiceImpl) RegisterShutdownHandler(logic func(ctx context.Context) error) {
+func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }

@@ -14,7 +14,7 @@ type GenericService struct {
 }
 
 func NewGenericService() *GenericService {
-	return &GenericService{BaseService: goservice.NewBaseService()}
+	return &GenericService{}
 }
 
 func main() {
