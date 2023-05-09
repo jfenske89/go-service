@@ -11,16 +11,16 @@ import (
 )
 
 type BaseService struct {
-	ShutdownHandlers []func(ctx context.Context) error
+	ShutdownHandlers []ServiceLogicFunc
 }
 
 // Run executes the main service logic
-func (s *BaseService) Run(logic func(ctx context.Context) error) error {
+func (s *BaseService) Run(logic ServiceLogicFunc) error {
 	return s.RunWithContext(context.Background(), logic)
 }
 
 // RunWithContext executes the main service logic with a parent context
-func (s *BaseService) RunWithContext(parentContext context.Context, logic func(ctx context.Context) error) error {
+func (s *BaseService) RunWithContext(parentContext context.Context, logic ServiceLogicFunc) error {
 	c := make(chan os.Signal, syscall.SIGTERM)
 	ctx, cancel := signal.NotifyContext(parentContext, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -78,6 +78,6 @@ func (s *BaseService) Shutdown(ctx context.Context) error {
 }
 
 // RegisterShutdownHandler adds a function to run during graceful shutdown
-func (s *BaseService) RegisterShutdownHandler(logic func(ctx context.Context) error) {
+func (s *BaseService) RegisterShutdownHandler(logic ServiceLogicFunc) {
 	s.ShutdownHandlers = append(s.ShutdownHandlers, logic)
 }
