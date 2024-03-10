@@ -4,7 +4,7 @@ A base Go service implementation with graceful shutdown handling.
 
 ## Running
 
-Once your service has been initialized, execute your logic using the `Run` or `RunWithContext` function.
+Simply execute your logic using the `Run` or `RunWithContext` function.
 
 ```go
 // Run executes the main service logic
@@ -16,7 +16,9 @@ RunWithContext(context.Context, logic func(context.Context) error) error
 
 ## Graceful shutdown
 
-Define graceful shutdown routines using the `RegisterShutdownHandler` function.
+Define graceful shutdown logic with `RegisterShutdownHandler`.
+
+For example: flush logs, close connections, wait for active work to finish, etc...
 
 ```go
 // Shutdown executes shutdown functions and exits
@@ -25,8 +27,7 @@ RegisterShutdownHandler(logic func(context.Context) error)
 
 These functions are executed in parallel before the application exits.
 
-The context passed to these handlers has a 30 second deadline by default.
-This deadline can be customized as needed.
+Shutdown has a 30 second deadline by default. This can be customized.
 
 ## Examples
 
