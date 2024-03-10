@@ -1,4 +1,4 @@
-module github.com/jfenske89/go-service
+module github.com/jfenske89/goservice
 
 go 1.22
 

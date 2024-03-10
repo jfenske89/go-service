@@ -62,12 +62,10 @@ func NewServiceWithShutdownDeadline(deadline time.Duration) Service {
 	}
 }
 
-// Run executes the main service logic
 func (s *serviceImpl) Run(logic ServiceLogic) error {
 	return s.RunWithContext(context.Background(), logic)
 }
 
-// RunWithContext executes the main service logic with a parent context
 func (s *serviceImpl) RunWithContext(parentContext context.Context, logic ServiceLogic) error {
 	c := make(chan os.Signal, syscall.SIGTERM)
 	ctx, cancel := signal.NotifyContext(
@@ -77,6 +75,7 @@ func (s *serviceImpl) RunWithContext(parentContext context.Context, logic Servic
 		syscall.SIGQUIT,
 	)
 
+	// store the cancel function to support forcing shutdown
 	s.cancelFunc = &cancel
 
 	defer func() {
@@ -92,7 +91,7 @@ func (s *serviceImpl) RunWithContext(parentContext context.Context, logic Servic
 		logicError = logic(ctx)
 	}()
 
-	// wait until the service logic finishes (or a shutdown is initiated)
+	// wait for the service logic to finish or the context to be cancelled
 	<-ctx.Done()
 
 	// always initiate graceful shutdown
@@ -105,6 +104,23 @@ func (s *serviceImpl) RunWithContext(parentContext context.Context, logic Servic
 	}
 
 	return nil
+}
+
+func (s *serviceImpl) Shutdown(ctx context.Context) error {
+	if s.cancelFunc == nil {
+		return fmt.Errorf("service not running")
+	}
+
+	(*s.cancelFunc)()
+
+	return nil
+}
+
+func (s *serviceImpl) RegisterShutdownHandler(logic ServiceLogic) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.shutdownHandlers = append(s.shutdownHandlers, logic)
 }
 
 func (s *serviceImpl) gracefulShutdown() error {
@@ -139,23 +155,4 @@ func (s *serviceImpl) gracefulShutdown() error {
 	}
 
 	return err
-}
-
-// Shutdown executes shutdown functions and exits
-func (s *serviceImpl) Shutdown(ctx context.Context) error {
-	if s.cancelFunc == nil {
-		return fmt.Errorf("service not running")
-	}
-
-	(*s.cancelFunc)()
-
-	return nil
-}
-
-// RegisterShutdownHandler adds a function to run during graceful shutdown
-func (s *serviceImpl) RegisterShutdownHandler(logic ServiceLogic) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	s.shutdownHandlers = append(s.shutdownHandlers, logic)
 }

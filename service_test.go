@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jfenske89/go-service/goservice"
+	"github.com/jfenske89/goservice"
 	"github.com/stretchr/testify/assert"
 )
 
