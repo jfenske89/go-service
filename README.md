@@ -1,6 +1,6 @@
 # go-service
 
-A base Go service implementation, with graceful shutdown handling.
+A base Go service implementation with graceful shutdown handling.
 
 ## Running
 
@@ -25,7 +25,8 @@ RegisterShutdownHandler(logic func(context.Context) error)
 
 These functions are executed in parallel before the application exits.
 
-The context passed to these handlers has a 30 second deadline. So execution cannot exceed that time.
+The context passed to these handlers has a 30 second deadline by default.
+This deadline can be customized as needed.
 
 ## Examples
 

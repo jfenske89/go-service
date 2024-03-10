@@ -8,57 +8,52 @@ import (
 	"github.com/jfenske89/go-service/goservice"
 )
 
-// GenericService example service that inherits the base version (handle your configs, etc...)
+// GenericService embed the base service and override any methods as needed
 type GenericService struct {
-	goservice.BaseService
+	goservice.Service
 }
 
-func NewGenericService() *GenericService {
-	return &GenericService{}
+func NewGenericService() goservice.Service {
+	return &GenericService{
+		// Create a new service with a 30 second shutdown deadline.
+		// Kubernetes will send a SIGTERM to the process when it's time to stop.
+		// Generally you 30 seconds to stop before it sends a SIGKILL, but this
+		// can be configured to support other types of environments.
+		goservice.NewServiceWithShutdownDeadline(10 * time.Second),
+	}
 }
 
 func main() {
+	// Optionally create a parent context
+	globalContext := context.Background()
+
 	//
 	// Build your custom service
 	service := NewGenericService()
 
 	//
-	// Register global shutdown handlers as needed
-	service.RegisterShutdownHandler(func(ctx context.Context) error {
-		// Write your own graceful shutdown logic in here
-		fmt.Println("Shutting down...")
-		time.Sleep(2 * time.Second)
-		fmt.Println("OK")
-		return nil
-	})
-
-	//
 	// Run main service logic
-	if err := service.Run(func(ctx context.Context) error {
-		//
-		// You could reference the service within this logic, for example to register conditional shutdown handlers
+	if err := service.RunWithContext(globalContext, func(ctx context.Context) error {
+		// Connect to databases, message queues, etc.
+		// ...
+
+		// Configure graceful shutdown. For example: wait for messages to be processed, close connections, etc.
 		service.RegisterShutdownHandler(func(ctx context.Context) error {
-			fmt.Println("other shutdown handler...")
+			fmt.Println("disconnecting...")
+
+			// an error will be returned to the caller if a shutdown handler takes longer than the deadline
+			// time.Sleep(15 * time.Second)
 			return nil
 		})
 
-		//
-		// Write your logic here, for example some kind of server
-		fmt.Println("service logic...")
-		time.Sleep(3 * time.Second)
+		// Write your logic here, for example some kind of server or message processor
+		fmt.Println("running service logic now...")
+		time.Sleep(2 * time.Second)
 
-		if false {
-			//
-			// Any error returned by this logic, will also be returned by the Run function
-			return fmt.Errorf("oh no")
-		}
-
-		//
-		// Return at any time to initiate shutdown logic
+		// Return at any time to initiate shutdown logic (errors are returned to the caller)
 		return nil
 	}); err != nil {
-		//
-		// Handle errors here (for example the "oh no" error above)
+		// Handle any error from the service or graceful shutdown logic
 		panic("error running service: " + err.Error())
 	}
 }
