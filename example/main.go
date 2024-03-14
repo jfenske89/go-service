@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jfenske89/goservice"
+	goservice "github.com/jfenske89/go-service"
 )
 
 // GenericService embed the base service and override any methods as needed
