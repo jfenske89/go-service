@@ -1,3 +1,7 @@
+# Archived project
+
+This repository is archived and the code was moved here: https://github.com/jfenske89/gobasrv
+
 # go-service
 
 A base Go service implementation, with graceful shutdown handling.
